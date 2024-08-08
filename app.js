@@ -1,27 +1,47 @@
 import express from "express";
 import bodyParser from "body-parser";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+// Get __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({extended:true}));
-app.use(express.static("public"));
+// Middleware setup
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(join(__dirname, "public")));
 
+// Set the view engine to EJS
+app.set("view engine", "ejs");
+app.set("views", join(__dirname, "views"));
+
+// Array to store new items
 let newItems = [];
-app.get("/", (req,res) => {
-    let options = {weekday: "long", year: "numeric", month:"long", day:"numeric"};
-    let today = new Date();
-    let currentDay = today.toLocaleDateString("en-US", options);
 
-    res.render("list.ejs", {day: currentDay, newListItems: newItems});
+// Routes
+app.get("/", (req, res) => {
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  const today = new Date();
+  const currentDay = today.toLocaleDateString("en-US", options);
+
+  res.render("list", { day: currentDay, newListItems: newItems });
 });
 
-app.post("/", (req,res) => {
-    let newItem = req.body["newItem"];
-    newItems.push(newItem);
-    res.redirect("/")
+app.post("/", (req, res) => {
+  const newItem = req.body.newItem;
+  newItems.push(newItem);
+  res.redirect("/");
 });
 
-app.listen(port, () =>{
-    console.log(`Server listening on port ${port}.`);
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}.`);
 });
